@@ -4,8 +4,11 @@ import io
 import sys
 import fcntl
 import time
+from datetime import datetime
 import copy
 import string
+import csv
+
 from AtlasI2C import (
 	 AtlasI2C
 )
@@ -57,6 +60,9 @@ def print_help_text():
       the optional argument [,x.xx] lets you set a polling time
       where x.xx is greater than the minimum %0.2f second timeout.
       by default it will poll every %0.2f seconds
+  - Log[,x.xx]
+      continuously polls all devices at polling rate x.xx
+      logs values to csv file YYYY-MM-DD-HH:MM_octopi.csv
 >> Pressing ctrl-c will stop the polling
     ''' % (AtlasI2C.LONG_TIMEOUT, AtlasI2C.LONG_TIMEOUT))
 
@@ -108,6 +114,49 @@ def main():
                     time.sleep(delaytime)
                     for dev in device_list:
                         print(dev.read())
+
+            except KeyboardInterrupt:       # catches the ctrl-c command, which breaks the loop above
+                print("Continuous polling stopped")
+                print_devices(device_list, device)
+
+        # continuous polling command automatically polls the board
+        elif user_cmd.upper().strip().startswith("LOG"):
+            
+            header = ['t_stamp', 't_rel (min)', 'ORP', 'pH', 'RTD']
+            csv_file = "~/data/" + datetime.now().strftime("%Y-%m-%d-%H:%M:%S") + ".csv"
+            with open(csv_file, 'w', encoding='UTF8', newline='') as f:
+                writer = csv.writer(f)
+                writer.writerow(header)
+            
+            cmd_list = user_cmd.split(',')
+            if len(cmd_list) > 1:
+                delaytime = float(cmd_list[1])
+            else:
+                delaytime = device.long_timeout
+
+            # check for polling time being too short, change it to the minimum timeout if too short
+            if delaytime < device.long_timeout:
+                print("Polling time is shorter than timeout, setting polling time to %0.2f" % device.long_timeout)
+                delaytime = device.long_timeout
+            
+            start_time = time.time()
+
+            try:
+                while True:
+                    print("-------press ctrl-c to stop the run")
+                    data = []
+                    for dev in device_list:
+                        dev.write("R")
+                    time.sleep(delaytime)
+                    data.append(datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+                    data.append((time.time() - start_time) / 60)
+                    for dev in device_list:
+                        reading = dev.read()
+                        data.append(reading.split(": ")[-1])
+                        print(reading)
+                    with open(csv_file, 'w', encoding='UTF8', newline='') as f:
+                        writer = csv.writer(f)
+                        writer.writerow(data)
 
             except KeyboardInterrupt:       # catches the ctrl-c command, which breaks the loop above
                 print("Continuous polling stopped")
