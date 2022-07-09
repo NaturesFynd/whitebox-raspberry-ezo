@@ -168,13 +168,15 @@ def main():
                         writer = csv.writer(f)
                         writer.writerow(data)
                     if (t_rel / 60) > maxtime:
+                        print("Uploading file...")
                         fs = gcsfs.GCSFileSystem(project='production-data-infra')
-                        fs.put(csv_file, f"nf_data_lake_prod/iot/octopi/{csv_file}")
+                        fs.put_file(csv_file, f"nf_data_lake_prod/iot/octopi/{csv_file}")
                         break
 
             except KeyboardInterrupt:       # catches the ctrl-c command, which breaks the loop above
+                print("Uploading file...")
                 fs = gcsfs.GCSFileSystem(project='production-data-infra')
-                fs.put(csv_file, f"nf_data_lake_prod/iot/octopi/{csv_file}")
+                fs.put_file(csv_file, f"nf_data_lake_prod/iot/octopi/{csv_file}")
                 print("Continuous polling stopped")
                 print_devices(device_list, device)
 
