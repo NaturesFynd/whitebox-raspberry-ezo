@@ -9,6 +9,7 @@ from pathlib import Path
 import copy
 import string
 import csv
+import gcsfs
 
 from AtlasI2C import (
 	 AtlasI2C
@@ -167,9 +168,13 @@ def main():
                         writer = csv.writer(f)
                         writer.writerow(data)
                     if (t_rel / 60) > maxtime:
+                        fs = gcsfs.GCSFileSystem(project='production-data-infra')
+                        fs.put(csv_file, f"nf_data_lake_prod/iot/octopi/{csv_file}")
                         break
 
             except KeyboardInterrupt:       # catches the ctrl-c command, which breaks the loop above
+                fs = gcsfs.GCSFileSystem(project='production-data-infra')
+                fs.put(csv_file, f"nf_data_lake_prod/iot/octopi/{csv_file}")
                 print("Continuous polling stopped")
                 print_devices(device_list, device)
 
