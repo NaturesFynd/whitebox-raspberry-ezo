@@ -161,7 +161,7 @@ def main():
                     data.append(t_rel)
                     for dev in device_list:
                         reading = dev.read()
-                        data.append(float(reading.split(": ")[-1]))
+                        data.append(float(reading.split(": ")[-1].strip()))
                         print(reading)
                     with open(csv_file, 'a', encoding='UTF8', newline='') as f:
                         writer = csv.writer(f)
