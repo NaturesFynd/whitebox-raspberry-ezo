@@ -127,7 +127,7 @@ def main():
             header = ['t_stamp', 't_rel (min)', 'ORP', 'pH', 'RTD']
             csv_file = datetime.now().strftime("%Y-%m-%d-%H:%M:%S") + "_octopi.csv"
             Path(csv_file).touch(exist_ok=True)
-            with open(csv_file, 'a+', encoding='UTF8', newline='') as f:
+            with open(csv_file, 'a', encoding='UTF8', newline='') as f:
                 writer = csv.writer(f)
                 writer.writerow(header)
             
@@ -161,9 +161,9 @@ def main():
                     data.append(t_rel)
                     for dev in device_list:
                         reading = dev.read()
-                        data.append(reading.split(": ")[-1])
+                        data.append(float(reading.split(": ")[-1]))
                         print(reading)
-                    with open(csv_file, 'a+', encoding='UTF8', newline='') as f:
+                    with open(csv_file, 'a', encoding='UTF8', newline='') as f:
                         writer = csv.writer(f)
                         writer.writerow(data)
                     if (t_rel / 60) > maxtime:
