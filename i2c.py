@@ -123,8 +123,8 @@ def main():
         elif user_cmd.upper().strip().startswith("LOG"):
             
             header = ['t_stamp', 't_rel (min)', 'ORP', 'pH', 'RTD']
-            csv_file = "~/data/" + datetime.now().strftime("%Y-%m-%d-%H:%M:%S") + ".csv"
-            with open(csv_file, 'w', encoding='UTF8', newline='') as f:
+            csv_file = "~/data/" + datetime.now().strftime("%Y-%m-%d-%H:%M:%S") + "_octopi.csv"
+            with open(csv_file, 'w+', encoding='UTF8', newline='') as f:
                 writer = csv.writer(f)
                 writer.writerow(header)
             
@@ -154,7 +154,7 @@ def main():
                         reading = dev.read()
                         data.append(reading.split(": ")[-1])
                         print(reading)
-                    with open(csv_file, 'w', encoding='UTF8', newline='') as f:
+                    with open(csv_file, 'w+', encoding='UTF8', newline='') as f:
                         writer = csv.writer(f)
                         writer.writerow(data)
 
