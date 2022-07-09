@@ -5,6 +5,7 @@ import sys
 import fcntl
 import time
 from datetime import datetime
+from pathlib import Path
 import copy
 import string
 import csv
@@ -60,9 +61,10 @@ def print_help_text():
       the optional argument [,x.xx] lets you set a polling time
       where x.xx is greater than the minimum %0.2f second timeout.
       by default it will poll every %0.2f seconds
-  - Log[,x.xx]
-      continuously polls all devices at polling rate x.xx
+  - Log[,x.xx,hh]
+      continuously polls all devices at polling rate x.xx seconds
       logs values to csv file YYYY-MM-DD-HH:MM_octopi.csv
+      terminates logging after hh hours, or defaults to 80 hrs
 >> Pressing ctrl-c will stop the polling
     ''' % (AtlasI2C.LONG_TIMEOUT, AtlasI2C.LONG_TIMEOUT))
 
@@ -124,6 +126,7 @@ def main():
             
             header = ['t_stamp', 't_rel (min)', 'ORP', 'pH', 'RTD']
             csv_file = "~/data/" + datetime.now().strftime("%Y-%m-%d-%H:%M:%S") + "_octopi.csv"
+            Path(csv_file).touch(exist_ok=True)
             with open(csv_file, 'w+', encoding='UTF8', newline='') as f:
                 writer = csv.writer(f)
                 writer.writerow(header)
@@ -133,6 +136,11 @@ def main():
                 delaytime = float(cmd_list[1])
             else:
                 delaytime = device.long_timeout
+
+            if len(cmd_list) > 2:
+                maxtime = float(cmd_list[2])
+            else:
+                maxtime = 80
 
             # check for polling time being too short, change it to the minimum timeout if too short
             if delaytime < device.long_timeout:
@@ -149,7 +157,8 @@ def main():
                         dev.write("R")
                     time.sleep(delaytime)
                     data.append(datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-                    data.append((time.time() - start_time) / 60)
+                    t_rel = (time.time() - start_time) / 60
+                    data.append(t_rel)
                     for dev in device_list:
                         reading = dev.read()
                         data.append(reading.split(": ")[-1])
@@ -157,6 +166,8 @@ def main():
                     with open(csv_file, 'w+', encoding='UTF8', newline='') as f:
                         writer = csv.writer(f)
                         writer.writerow(data)
+                    if (t_rel / 60) > maxtime:
+                        break
 
             except KeyboardInterrupt:       # catches the ctrl-c command, which breaks the loop above
                 print("Continuous polling stopped")
