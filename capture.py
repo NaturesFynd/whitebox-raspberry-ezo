@@ -55,7 +55,7 @@ def log_data_to_csv(
 
     # Set up the CSV file
     header = ['t_stamp', 't_rel (min)', 'ORP', 'pH', 'RTD']
-    csv_file = "data/" + datetime.now().strftime("%Y-%m-%d-%H:%M:%S") + "_octopi.csv"
+    csv_file = "pershing_caron_data/" + datetime.now().strftime("%Y-%m-%d-%H:%M:%S") + "_octopi.csv"
     Path(csv_file).touch(exist_ok=True)
     with open(csv_file, 'a', encoding='UTF8', newline='') as f:
         writer = csv.writer(f)
